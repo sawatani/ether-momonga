@@ -6,13 +6,11 @@ import Blockchain.Ethereum.HexString
 %default total
 %access private
 
-AddrHex : Type
-AddrHex = HexString 20
-
 export
 data Address : Type where
-  AddrBody : (src : String) -> (hex : AddrHex) -> Address
+  AddrBody : (src : String) -> (hex : HexString 20) -> Address
 
+export
 Show Address where
   show (AddrBody src hex) = src
 
