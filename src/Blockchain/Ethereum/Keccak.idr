@@ -36,3 +36,13 @@ spongeParam256 =
   let prf1 = lteBy64 8 25 in
   let prf2 = lteBy64 4 (25 - 8) in
   MkSpongeParam 256
+
+export
+spongeParam512 : SpongeParam 512
+spongeParam512 =
+  -- 25 * 64 = 1600
+  -- 16 * 64 = 1024
+  -- 8 * 64 = 512
+  let prf1 = lteBy64 16 25 in
+  let prf2 = lteBy64 8 (25 - 16) in
+  MkSpongeParam 512
