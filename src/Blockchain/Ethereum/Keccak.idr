@@ -1,6 +1,6 @@
 module Blockchain.Ethereum.Keccak
 
-import Data.Natural
+import Data.Nat
 
 %default total
 %access private

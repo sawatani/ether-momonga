@@ -2,4 +2,6 @@ package ether-momonga
 
 sourcedir = src
 
+pkgs = contrib
+
 modules Blockchain.Ethereum
