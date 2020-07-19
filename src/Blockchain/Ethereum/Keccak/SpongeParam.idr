@@ -1,4 +1,4 @@
-module Blockchain.Ethereum.Keccak
+module Blockchain.Ethereum.Keccak.SpongeParam
 
 import Data.Nat
 
