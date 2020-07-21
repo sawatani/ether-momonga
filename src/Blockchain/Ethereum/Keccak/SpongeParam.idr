@@ -1,48 +1,59 @@
 module Blockchain.Ethereum.Keccak.SpongeParam
 
 import Data.Nat
+import Data.Natural
+import Prelude.Nat
 
 %default total
-%access private
+%access export
 
-export
+ElmBits : Nat
+ElmBits = 64
+
+lteByElmBits : (a : Nat) -> (b : Nat) -> {auto p : LTE a b}  -> LTE (a * ElmBits) (b * ElmBits)
+lteByElmBits _ _ {p} = lteCongMult ElmBits p
+
+||| Params of sponge data
 data SpongeParam : {default 1600 totalBits : Nat} -> (hashBits : Nat) -> Type where
   MkSpongeParam :
-    {default 1600 totalBits : Nat} ->
-    (hashBits : Nat) ->
-    {auto prf1 : capaticyBits = hashBits * 2} ->
-    {auto prf2 : LTE capaticyBits totalBits} ->
-    {auto prf3 : rateBits = totalBits - capaticyBits} ->
-    {auto prf4 : LTE hashBits rateBits} ->
-    SpongeParam {totalBits} hashBits
+    {default 25 totalElms : Nat} -> -- 25 * ElmBits = 1600
+    (hashElms : Nat) ->
+    {auto prf1 : capaticyElms = hashElms * 2} ->
+    {auto prf2 : LTE capaticyElms totalElms} ->
+    {auto prf3 : rateElms = totalElms - capaticyElms} ->
+    {auto prf4 : LTE hashElms rateElms} ->
+    SpongeParam {totalBits = totalElms * ElmBits} (hashElms * ElmBits)
 
-export
-rateBits : SpongeParam {totalBits} hashBits -> Nat
-rateBits (MkSpongeParam {totalBits} hashBits {prf1} {prf2}) =
-  let p = prf in totalBits - hashBits * 2
-  where
-    prf : LTE (hashBits * 2) totalBits
-    prf = rewrite sym prf1 in prf2
+%name SpongeParam param, param1, param2
 
-lteBy64 : (a : Nat) -> (b : Nat) -> {auto p : LTE a b}  -> LTE (a * 64) (b * 64)
-lteBy64 _ _ {p} = lteCongMult 64 p
+totalElms : SpongeParam {totalBits} hashBits -> Nat
+totalElms (MkSpongeParam {totalElms} _) = totalElms
 
-export
+hashElms : SpongeParam {totalBits} hashBits -> Nat
+hashElms (MkSpongeParam hashElms) = hashElms
+
+capaticyElms : SpongeParam {totalBits} hashBits -> Nat
+capaticyElms (MkSpongeParam hashElms) = hashElms * 2
+
+prfCapacityElms :
+  (param : SpongeParam {totalBits} hashBits) ->
+  LTE (capaticyElms param) (totalElms param)
+prfCapacityElms (MkSpongeParam {totalElms} hashElms {prf1} {prf2}) =
+  rewrite sym prf1 in prf2
+
+rateElms : SpongeParam {totalBits} hashBits -> Nat
+rateElms param = let p = prfCapacityElms param in
+    totalElms param - capaticyElms param
+
+prfRateElms :
+  (param : SpongeParam {totalBits} hashBits) ->
+  LTE (rateElms param) (totalElms param)
+prfRateElms param =
+  let p = prfCapacityElms param in
+  lteEqMinus (totalElms param) (capaticyElms param)
+
 spongeParam256 : SpongeParam 256
-spongeParam256 =
-  -- 25 * 64 = 1600
-  -- 8 * 64 = 512
-  -- 4 * 64 = 256
-  let prf1 = lteBy64 8 25 in
-  let prf2 = lteBy64 4 (25 - 8) in
-  MkSpongeParam 256
+spongeParam256 = MkSpongeParam 4 -- 4 * ElmBits = 256
 
-export
 spongeParam512 : SpongeParam 512
-spongeParam512 =
-  -- 25 * 64 = 1600
-  -- 16 * 64 = 1024
-  -- 8 * 64 = 512
-  let prf1 = lteBy64 16 25 in
-  let prf2 = lteBy64 8 (25 - 16) in
-  MkSpongeParam 512
+spongeParam512 = MkSpongeParam 8 -- 8 * ElmBits = 512
