@@ -7,10 +7,16 @@ import Prelude.Nat
 %default total
 %access export
 
-ElmBits : Nat
-ElmBits = 64
+LogBits : Nat
+LogBits = 6
 
-lteByElmBits : (a : Nat) -> (b : Nat) -> {auto p : LTE a b}  -> LTE (a * ElmBits) (b * ElmBits)
+ElmBits : Nat
+ElmBits = 2 `pow` LogBits
+
+lteByElmBits : (a : Nat) ->
+  (b : Nat) ->
+  {auto p : LTE a b} ->
+  LTE (a * ElmBits) (b * ElmBits)
 lteByElmBits _ _ {p} = lteCongMult ElmBits p
 
 ||| Params of sponge data

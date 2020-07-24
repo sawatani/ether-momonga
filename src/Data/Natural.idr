@@ -1,5 +1,7 @@
 module Data.Natural
 
+import Data.Bits
+import Data.Fin
 import Prelude.Nat
 
 %default total
@@ -18,3 +20,12 @@ lteEqRightMinus {n} {m} Z prf =
   rewrite sym (minusZeroRight m) in
   rewrite prf in lteRefl
 lteEqRightMinus {m} (S k) prf = rewrite prf in lteEqMinus m (S k)
+
+rotateL : {n : Nat} -> Nat -> Bits n -> Bits n
+rotateL {n = Z} _ bits = bits
+rotateL {n = n@(S k)} m bits =
+  let i = toIntegerNat $ modNatNZ m n SIsNotZ in
+  let limit = toIntegerNat n in
+  let left = intToBits i in
+  let right = intToBits $ limit- i in
+  (shiftLeft bits left) `or` (shiftRightLogical bits right)
