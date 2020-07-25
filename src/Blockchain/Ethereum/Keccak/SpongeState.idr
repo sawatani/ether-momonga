@@ -58,32 +58,4 @@ read state n = pick n
       sucs <- pick k
       pure $ e :: sucs
 
-private
-rounds : Nat
-rounds = 12 + 2 * LogBits
-
--- permute : (state : SpongeState totalBits) -> IO ()
-
-private
-theta : IOArray Elem -> IO ()
-theta array = do
-    leftColumn <- xors
-    let rightColumn = rotateL 1 `map` leftColumn
-    for [0..24] (\i => do
-      e <- unsafeReadArray array i
-      let x = cast i
-      let leftX = restrict 4 (x + 4) `index` leftColumn
-      let rightX = restrict 4 (x + 1) `index` rightColumn
-      let e' = (e `xor` leftX) `xor` rightX
-      unsafeWriteArray array i e'
-    )
-    pure ()
-  where
-    indexes : Vect 5 Int
-    indexes = [0, 1, 2, 3, 4]
-    xorColumn : Int -> IO Elem
-    xorColumn x = do
-      ys <- traverse (\y => unsafeReadArray array $ 5 * y + x) indexes
-      pure $ foldr1 xor ys
-    xors : IO (Vect 5 Elem)
-    xors = traverse xorColumn indexes
+permute : (state : SpongeState totalBits) -> IO ()
