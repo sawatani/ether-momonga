@@ -2,6 +2,7 @@ module Data.Natural
 
 import Data.Bits
 import Data.Fin
+import Data.Primitives.Views
 
 %default total
 %access public export
@@ -26,3 +27,13 @@ rotateL {n = n@(S _)} bits m@(S _) =
   let left = intToBits i in
   let right = intToBits $ limit- i in
   shiftLeft bits left `or` shiftRightLogical bits right
+
+||| Triangular Numbers
+||| start from 1 at 0
+||| fomula n := (n + 1) * (n + 2) / 2
+triNumbers : Integer -> Integer
+triNumbers n with (divides n 2)
+  triNumbers ((2 * div) + rem) | (DivBy prf) =
+    case rem of
+         0 => (2 * div + 1) * (div + 1)
+         _ => (div + 1) * (2 * div + 3)
