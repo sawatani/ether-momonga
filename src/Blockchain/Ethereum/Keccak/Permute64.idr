@@ -48,19 +48,17 @@ namespace rho
   rotations = map zipPair [0..24]
 
 namespace pi
-  calcNext : (Nat, Nat) -> (Int, (Nat, Nat))
-  calcNext (x, y) =
-    let a = 5 * y + x in
-    let b = 5 * x + (modNatNZ (x + 3 * y) 5 SIsNotZ) in
-    let x' = modNatNZ b 5 SIsNotZ in
-    let y' = divNatNZ b 5 SIsNotZ in
-    (toIntNat a, (x', y'))
+  calcNext : Nat -> Nat
+  calcNext a =
+    let x = modNatNZ a 5 SIsNotZ in
+    let y = divNatNZ a 5 SIsNotZ in
+    5 * x + (modNatNZ (x + 3 * y) 5 SIsNotZ)
 
-  pairs : Stream (Int, (Nat, Nat))
-  pairs = Stream.iterate (calcNext . snd) $ calcNext (1, 0)
+  pairs : Stream Nat
+  pairs = Stream.iterate calcNext 1
 
   replacingIndexes : List Int
-  replacingIndexes = take 24 $ map fst pairs
+  replacingIndexes = take 24 $ map toIntNat pairs
 
 theta : IOArray Elem -> IO ()
 theta array = do
