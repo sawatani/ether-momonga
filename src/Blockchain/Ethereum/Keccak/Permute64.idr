@@ -89,11 +89,11 @@ namespace pi
   pairs : Stream Nat
   pairs = Stream.iterate calcNext 1
 
-  replacingIndexes : List Int
-  replacingIndexes = take 24 $ map toIntNat pairs
+  indexes : List Int
+  indexes = take 24 $ map toIntNat pairs
 
   stepPI : IOArray Elem -> IO ()
-  stepPI array = replace replacingIndexes
+  stepPI array = replace indexes
     where
       replace : List Int -> IO ()
       replace [] = pure ()
@@ -105,3 +105,34 @@ namespace pi
           pure index
         ) firstIndex xs
         unsafeWriteArray array lastIndex firstElem
+
+namespace chi
+  calcIndex : Nat -> Nat -> Int
+  calcIndex x y = toIntNat $ 5 * y + (modNatNZ x 5 SIsNotZ)
+
+  data Cache : Type where
+    NoCache : Cache
+    MkCache : Elem -> Cache
+
+  readAt : IOArray Elem -> (y : Nat) ->
+    Cache -> (x : Nat) -> IO Elem
+  readAt array y NoCache x = unsafeReadArray array $ calcIndex x y
+  readAt _ _ (MkCache e) _ = pure e
+
+  eachOnY : IOArray Elem -> (y : Nat) ->
+    (Cache, Cache) -> (x : Nat) ->
+    IO (Cache, Cache)
+  eachOnY array y (p1, p2) x = let at = readAt array y in do
+    let index = calcIndex x y
+    e0 <- unsafeReadArray array index
+    e1 <- p1 `at` (x + 1)
+    e2 <- p2 `at` (x + 2)
+    let e = e0 `xor` (e1 `and` e2)
+    unsafeWriteArray array index e
+    pure (MkCache e0, MkCache e1)
+
+  stepCHI : IOArray Elem -> IO ()
+  stepCHI array = foldlM (\_, y => do
+    foldlM (eachOnY array y) (NoCache, NoCache) [4..0]
+    pure ()
+  ) () [4..0]
