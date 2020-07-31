@@ -127,7 +127,7 @@ namespace chi
     e0 <- unsafeReadArray array index
     e1 <- p1 `at` (x + 1)
     e2 <- p2 `at` (x + 2)
-    let e = e0 `xor` (e1 `and` e2)
+    let e = e0 `xor` (complement e1 `and` e2)
     unsafeWriteArray array index e
     pure (MkCache e0, MkCache e1)
 
