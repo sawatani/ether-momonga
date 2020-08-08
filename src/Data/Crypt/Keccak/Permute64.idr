@@ -8,18 +8,16 @@ import Data.Natural
 import Data.Vect
 import Data.Primitives.Views
 import Data.Crypt.LFSR
+import Data.Crypt.Keccak.SpongeParam
 
 %default total
 %access export
 
-BL : Nat
-BL = 6
-
 Elem : Type
-Elem = Bits (2 `pow` BL)
+Elem = Bits ElmBits
 
 ROUNDS : Nat
-ROUNDS = 12 + 2 * BL
+ROUNDS = 12 + 2 * LogBits
 
 WORDS_MAX : Nat
 WORDS_MAX = 5 * 5 -1
@@ -146,12 +144,12 @@ namespace iota
   zero = intToBits 0
 
   eachRound : (bits : Bits 8) -> (state : Bits 8) ->
-    (m : Nat) -> {auto lte : LTE m (S BL)} -> (Bits 8, Bits 8)
+    (m : Nat) -> {auto lte : LTE m (S LogBits)} -> (Bits 8, Bits 8)
   eachRound state bits Z = (state, bits)
   eachRound state bits (S k) {lte} =
     let lteL = lteSuccLeft lte in
     let lteBoth = fromLteSucc lte in
-    let j = intToBits $ fromNat $ BL - k in
+    let j = intToBits $ fromNat $ LogBits - k in
     let pos = shiftLeft value1 j `minus` intToBits 1 in
     let nextBits = if output state then bits `xor` shiftLeft value1 pos else bits in
     eachRound (next state) nextBits k
@@ -159,7 +157,7 @@ namespace iota
   rounds : (state : Bits 8) -> (n : Nat) -> Vect n (Bits 8)
   rounds _ Z = []
   rounds state (S k) =
-    let (next, bits) = eachRound state zero (S BL) in
+    let (next, bits) = eachRound state zero (S LogBits) {lte=lteRefl} in
     bits :: rounds next k
 
   constants : Vect ROUNDS (Bits 8)
