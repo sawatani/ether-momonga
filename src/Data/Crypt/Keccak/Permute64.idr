@@ -137,28 +137,36 @@ namespace chi
   ) () [4..0]
 
 namespace iota
-  startState : Bits 8
-  startState = value1
+  LFSRState : Type
+  LFSRState = Bits 8
 
-  zero : Bits 8
-  zero = intToBits 0
+  one : Elem
+  one = intToBits 1
 
-  eachRound : (bits : Bits 8) -> (state : Bits 8) ->
-    (m : Nat) -> {auto lte : LTE m (S LogBits)} -> (Bits 8, Bits 8)
-  eachRound state bits Z = (state, bits)
-  eachRound state bits (S k) {lte} =
+  eachRound : Elem -> (state : LFSRState) ->
+    (m : Nat) -> {auto lte : LTE m (S LogBits)} -> (LFSRState, Elem)
+  eachRound bits state Z = (state, bits)
+  eachRound bits state (S k) {lte} =
+    let nextBits = if output state
+      then
+        let lteBoth = fromLteSucc lte in
+        let j = intToBits $ fromNat $ LogBits - k in
+        let pos = shiftLeft one j `minus` one in
+        bits `xor` shiftLeft one pos
+      else bits in
     let lteL = lteSuccLeft lte in
-    let lteBoth = fromLteSucc lte in
-    let j = intToBits $ fromNat $ LogBits - k in
-    let pos = shiftLeft value1 j `minus` intToBits 1 in
-    let nextBits = if output state then bits `xor` shiftLeft value1 pos else bits in
-    eachRound (next state) nextBits k
+    eachRound nextBits (next state) k
 
-  rounds : (state : Bits 8) -> (n : Nat) -> Vect n (Bits 8)
-  rounds _ Z = []
-  rounds state (S k) =
-    let (next, bits) = eachRound state zero (S LogBits) {lte=lteRefl} in
-    bits :: rounds next k
+  mkValues : (state : LFSRState) -> (n : Nat) -> Vect n Elem
+  mkValues _ Z = []
+  mkValues state (S k) =
+    let (next, bits) = eachRound (intToBits 0) state (S LogBits) {lte=lteRefl} in
+    bits :: mkValues next k
 
-  constants : Vect ROUNDS (Bits 8)
-  constants = rounds startState ROUNDS
+  roundValues : Vect ROUNDS Elem
+  roundValues = mkValues value1 ROUNDS
+
+  stepIOTA : IOArray Elem -> (roundIndex : Fin ROUNDS) -> IO ()
+  stepIOTA array roundIndex = do
+    v <- unsafeReadArray array 0
+    unsafeWriteArray array 0 $ v `xor` index roundIndex roundValues
