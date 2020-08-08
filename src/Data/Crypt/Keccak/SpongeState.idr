@@ -1,4 +1,4 @@
-module Blockchain.Ethereum.Keccak.SpongeState
+module Data.Crypt.Keccak.SpongeState
 
 import Data.Bits
 import Data.IOArray

@@ -1,4 +1,4 @@
-module Blockchain.Ethereum.Keccak.Permute64
+module Data.Crypt.Keccak.Permute64
 
 import Data.Bits
 import Data.IOArray
