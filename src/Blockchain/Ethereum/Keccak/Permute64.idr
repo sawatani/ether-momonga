@@ -7,21 +7,22 @@ import Data.Matrix.Numeric
 import Data.Natural
 import Data.Vect
 import Data.Primitives.Views
+import Data.Crypt.LFSR
 
 %default total
 %access export
 
+BL : Nat
+BL = 6
+
 Elem : Type
-Elem = Bits 64
+Elem = Bits (2 `pow` BL)
 
-rounds : Nat
-rounds = 12 + 2 * 6
+ROUNDS : Nat
+ROUNDS = 12 + 2 * BL
 
-indexesInXY : List (Nat, Nat)
-indexesInXY = do
-  x <- [0..4]
-  y <- [0..4]
-  pure (x, y)
+WORDS_MAX : Nat
+WORDS_MAX = 5 * 5 -1
 
 namespace theta
   indexes : Vect 5 Int
@@ -46,7 +47,7 @@ namespace theta
         let rightX = restrict 4 (x + 1) `index` rightColumn
         let e' = (e `xor` leftX) `xor` rightX
         unsafeWriteArray array i e'
-      ) () [0..24]
+      ) () [0..(toIntNat WORDS_MAX)]
 
 namespace rho
   baseMatrix : Matrix 2 2 Integer
@@ -70,7 +71,7 @@ namespace rho
       rotation = (finToNat . restrict 63) $ triNumbers $ cast t
 
   rotations : List (Int, Nat)
-  rotations = map zipPair [0..24]
+  rotations = map zipPair [0..WORDS_MAX]
 
   stepRHO : IOArray Elem -> IO ()
   stepRHO array = foldlM (\_, (i, s) => do
@@ -90,7 +91,7 @@ namespace pi
   pairs = Stream.iterate calcNext 1
 
   indexes : List Int
-  indexes = take 24 $ map toIntNat pairs
+  indexes = take WORDS_MAX $ map toIntNat pairs
 
   stepPI : IOArray Elem -> IO ()
   stepPI array = replace indexes
@@ -136,3 +137,30 @@ namespace chi
     foldlM (eachOnY array y) (NoCache, NoCache) [4..0]
     pure ()
   ) () [4..0]
+
+namespace iota
+  startState : Bits 8
+  startState = value1
+
+  zero : Bits 8
+  zero = intToBits 0
+
+  eachRound : (bits : Bits 8) -> (state : Bits 8) ->
+    (m : Nat) -> {auto lte : LTE m (S BL)} -> (Bits 8, Bits 8)
+  eachRound state bits Z = (state, bits)
+  eachRound state bits (S k) {lte} =
+    let lteL = lteSuccLeft lte in
+    let lteBoth = fromLteSucc lte in
+    let j = intToBits $ fromNat $ BL - k in
+    let pos = shiftLeft value1 j `minus` intToBits 1 in
+    let nextBits = if output state then bits `xor` shiftLeft value1 pos else bits in
+    eachRound (next state) nextBits k
+
+  rounds : (state : Bits 8) -> (n : Nat) -> Vect n (Bits 8)
+  rounds _ Z = []
+  rounds state (S k) =
+    let (next, bits) = eachRound state zero (S BL) in
+    bits :: rounds next k
+
+  constants : Vect ROUNDS (Bits 8)
+  constants = rounds startState ROUNDS
