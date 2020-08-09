@@ -4,7 +4,8 @@ import Data.Bits
 import Data.IOArray
 import Data.Vect
 import Data.Natural
-import Blockchain.Ethereum.Keccak.SpongeParam
+import Data.Crypt.Keccak.SpongeParam
+import Data.Crypt.Keccak.Permute64
 
 %default total
 %access export
@@ -19,9 +20,6 @@ record SpongeState e where
 
 SizeOfElem : Nat
 SizeOfElem = 5 * 5
-
-Elem : Type
-Elem = Bits ElmBits
 
 spongeState1600 : IO (SpongeState Elem)
 spongeState1600 = do
@@ -58,4 +56,5 @@ read state n = pick n
       sucs <- pick k
       pure $ e :: sucs
 
-permute : (state : SpongeState totalBits) -> IO ()
+permute : (state : SpongeState Elem) -> IO ()
+permute state = roundAll $ array state

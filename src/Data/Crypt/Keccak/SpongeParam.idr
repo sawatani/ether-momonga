@@ -1,5 +1,6 @@
 module Data.Crypt.Keccak.SpongeParam
 
+import Data.Bits
 import Data.Nat
 import Data.Natural
 import Prelude.Nat
@@ -7,11 +8,17 @@ import Prelude.Nat
 %default total
 %access export
 
+public export
 LogBits : Nat
 LogBits = 6
 
+public export
 ElmBits : Nat
 ElmBits = 2 `pow` LogBits
+
+public export
+Elem : Type
+Elem = Bits ElmBits
 
 lteByElmBits : (a : Nat) ->
   (b : Nat) ->

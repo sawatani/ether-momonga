@@ -13,9 +13,6 @@ import Data.Crypt.Keccak.SpongeParam
 %default total
 %access export
 
-Elem : Type
-Elem = Bits ElmBits
-
 ROUNDS : Nat
 ROUNDS = 12 + 2 * LogBits
 
@@ -24,7 +21,7 @@ WORDS_MAX = 5 * 5 -1
 
 namespace theta
   indexes : Vect 5 Int
-  indexes = fromList [0..4]
+  indexes = fromList $ toIntNat `map` natRange 5
 
   xorColumn : IOArray Elem -> Int -> IO Elem
   xorColumn array x = do
@@ -45,7 +42,7 @@ namespace theta
         let rightX = restrict 4 (x + 1) `index` rightColumn
         let e' = (e `xor` leftX) `xor` rightX
         unsafeWriteArray array i e'
-      ) () [0..(toIntNat WORDS_MAX)]
+      ) () $ toIntNat `map` natRange WORDS_MAX
 
 namespace rho
   baseMatrix : Matrix 2 2 Integer
@@ -69,7 +66,7 @@ namespace rho
       rotation = (finToNat . restrict 63) $ triNumbers $ cast t
 
   rotations : List (Int, Nat)
-  rotations = map zipPair [0..WORDS_MAX]
+  rotations = map zipPair $ natRange WORDS_MAX
 
   stepRHO : IOArray Elem -> IO ()
   stepRHO array = foldlM (\_, (i, s) => do
@@ -170,3 +167,12 @@ namespace iota
   stepIOTA array roundIndex = do
     v <- unsafeReadArray array 0
     unsafeWriteArray array 0 $ v `xor` index roundIndex roundValues
+
+roundAll : IOArray Elem -> IO ()
+roundAll array = foldlM (\_, i => do
+  stepTHETA array
+  stepRHO array
+  stepPI array
+  stepCHI array
+  stepIOTA array $ restrict (ROUNDS - 1) $ fromNat i
+) () $ natRange ROUNDS
