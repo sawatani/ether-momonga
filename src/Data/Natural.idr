@@ -7,6 +7,14 @@ import Data.Primitives.Views
 %default total
 %access public export
 
+eqMinusPlus : (n : Nat) -> (m : Nat) -> {auto lteMN: LTE m n} -> n - m + m = n
+eqMinusPlus n Z = rewrite minusZeroRight n in rewrite plusZeroRightNeutral n in Refl
+eqMinusPlus (S k) (S j) {lteMN} =
+  let lteJK = fromLteSucc lteMN in
+  rewrite sym $ plusSuccRightSucc (k - j) j in
+  let prev = eqMinusPlus k j in
+  eqSucc (k - j + j) k prev
+
 lteEqMinus : (n : Nat) -> (m : Nat) -> {auto lteMN : LTE m n} -> LTE (n - m) n
 lteEqMinus Z m = LTEZero
 lteEqMinus (S k) Z = lteRefl
