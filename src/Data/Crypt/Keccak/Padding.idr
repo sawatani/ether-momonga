@@ -8,11 +8,25 @@ import Data.Crypt.Keccak.SpongeParam
 %default total
 %access export
 
+public export
+data LazyList : Type -> Type where
+  Nil : LazyList a
+  (::) : a -> Inf (LazyList a) -> LazyList a
+
+data PadByte : Type where
+  MkPad : Bits 8 -> PadByte
+
+keccakPad : PadByte
+keccakPad = MkPad $ intToBits 1
+
+sha3Pad : PadByte
+sha3Pad = MkPad $ intToBits 6
+
 ElmBytes : Nat
 ElmBytes = divNatNZ ElmBits 8 SIsNotZ
 
-loadBytes : (n : Nat) -> List a ->
-  Either (m : Nat ** (Vect m a, LT m n)) (List a, Vect n a)
+loadBytes : (n : Nat) -> LazyList a ->
+  Either (m : Nat ** (Vect m a, LT m n)) (LazyList a, Vect n a)
 loadBytes Z xs = Right (xs, [])
 loadBytes (S k) [] = Left (Z ** ([], LTESucc LTEZero))
 loadBytes (S k) (x :: xs) =
@@ -28,16 +42,7 @@ combine {n = S k} (v :: vs) {lteN} =
   let lteK = lteSuccLeft lteN in
   shifted `plus` combine vs
 
-data PadByte : Type where
-  MkPad : Bits 8 -> PadByte
-
-keccakPad : PadByte
-keccakPad = MkPad $ intToBits 1
-
-sha3Pad : PadByte
-sha3Pad = MkPad $ intToBits 6
-
-loadElem : PadByte -> List (Bits 8) -> Either Elem (List (Bits 8), Elem)
+loadElem : PadByte -> LazyList (Bits 8) -> Either Elem (LazyList (Bits 8), Elem)
 loadElem (MkPad pad) xs =
   case loadBytes ElmBytes xs of
        Right (r, ys) => Right (r, combine ys)
@@ -46,8 +51,8 @@ loadElem (MkPad pad) xs =
          let lteM = lteSuccLeft ltM in
          Left (combine ys `plus` ps)
 
-loadElems : PadByte -> (n : Nat) -> List (Bits 8) ->
-  Either (m : Nat ** (Vect m Elem, LTE m n)) (List (Bits 8), Vect n Elem)
+loadElems : PadByte -> (n : Nat) -> LazyList (Bits 8) ->
+  Either (m : Nat ** (Vect m Elem, LTE m n)) (LazyList (Bits 8), Vect n Elem)
 loadElems (MkPad x) Z xs = Right (xs, [])
 loadElems (MkPad x) (S k) [] = Left (Z ** ([], LTEZero))
 loadElems padByte (S k) xs =
@@ -55,7 +60,7 @@ loadElems padByte (S k) xs =
        Left (m ** (ys, lte)) => Left (m ** (ys, lteSuccRight lte))
        Right (rs, es) =>
          case loadElem padByte rs of
-              Left e => Left ((S k) ** ((e :: es), lteRefl))
+              Left e => Left ((S k) ** (e :: es, lteRefl))
               Right (remaining, e) => Right (remaining, e :: es)
 
 putTail : a -> Vect n a -> {auto lteNM : LTE n m} -> Vect m a
@@ -71,7 +76,7 @@ setLastBit {k} xs =
   rewrite sym $ plusCommutative k 1 in
   init xs ++ [e]
 
-pad : PadByte -> List (Bits 8) -> List (Vect (S k) Elem)
+pad : PadByte -> LazyList (Bits 8) -> LazyList (Vect (S k) Elem)
 pad {k} (MkPad pad) [] =
   let one = zeroExtend pad :: replicate k (intToBits 0) in
   [setLastBit one]
