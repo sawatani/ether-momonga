@@ -27,46 +27,71 @@ lteByElmBits : (a : Nat) ->
 lteByElmBits _ _ {p} = lteCongMult ElmBits p
 
 ||| Params of sponge data
-data SpongeParam : {default 1600 totalBits : Nat} -> (hashBits : Nat) -> Type where
+data SpongeParam : {default 1600 totalBits : Nat} -> Type where
   MkSpongeParam :
     {default 25 totalElms : Nat} -> -- 25 * ElmBits = 1600
-    (hashElms : Nat) ->
+    (hashElms : Nat) -> Not (hashElms = Z) ->
     {auto prf1 : capaticyElms = hashElms * 2} ->
     {auto prf2 : LTE capaticyElms totalElms} ->
-    {auto prf3 : rateElms = totalElms - capaticyElms} ->
-    {auto prf4 : LTE hashElms rateElms} ->
-    SpongeParam {totalBits = totalElms * ElmBits} (hashElms * ElmBits)
+    {auto prf3 : blockElms = totalElms - capaticyElms} ->
+    {auto prf4 : LTE hashElms blockElms} ->
+    SpongeParam {totalBits = totalElms * ElmBits}
 
 %name SpongeParam param, param1, param2
 
-totalElms : SpongeParam {totalBits} hashBits -> Nat
-totalElms (MkSpongeParam {totalElms} _) = totalElms
+totalElms : SpongeParam {totalBits} -> Nat
+totalElms (MkSpongeParam {totalElms} _ _) = totalElms
 
-hashElms : SpongeParam {totalBits} hashBits -> Nat
-hashElms (MkSpongeParam hashElms) = hashElms
+hashElms : SpongeParam {totalBits} -> Nat
+hashElms (MkSpongeParam hashElms _) = hashElms
 
-capaticyElms : SpongeParam {totalBits} hashBits -> Nat
-capaticyElms (MkSpongeParam hashElms) = hashElms * 2
+nonZeroHashElms : (param : SpongeParam {totalBits}) -> Not (hashElms param = 0)
+nonZeroHashElms (MkSpongeParam _ nonZero) = nonZero
 
-prfCapacityElms :
-  (param : SpongeParam {totalBits} hashBits) ->
+capaticyElms : SpongeParam {totalBits} -> Nat
+capaticyElms (MkSpongeParam hashElms _ {prf1}) = hashElms * 2
+
+hashBits : SpongeParam -> Nat
+hashBits param = hashElms param * ElmBits
+
+lteCapacityElms :
+  (param : SpongeParam {totalBits}) ->
   LTE (capaticyElms param) (totalElms param)
-prfCapacityElms (MkSpongeParam {totalElms} hashElms {prf1} {prf2}) =
+lteCapacityElms (MkSpongeParam _ _ {prf1} {prf2}) =
   rewrite sym prf1 in prf2
 
-rateElms : SpongeParam {totalBits} hashBits -> Nat
-rateElms param = let p = prfCapacityElms param in
+blockElms : SpongeParam {totalBits} -> Nat
+blockElms param = let p = lteCapacityElms param in
     totalElms param - capaticyElms param
 
-prfRateElms :
-  (param : SpongeParam {totalBits} hashBits) ->
-  LTE (rateElms param) (totalElms param)
-prfRateElms param =
-  let p = prfCapacityElms param in
+lteHashBlockElms :
+  (param : SpongeParam {totalBits}) ->
+  LTE (hashElms param) (blockElms param)
+lteHashBlockElms (MkSpongeParam _ _ {prf1} {prf3} {prf4}) =
+  rewrite sym prf1 in
+  rewrite sym prf3 in
+  prf4
+
+lteBlockElms :
+  (param : SpongeParam {totalBits}) ->
+  LTE (blockElms param) (totalElms param)
+lteBlockElms param =
+  let p = lteCapacityElms param in
   lteEqMinus (totalElms param) (capaticyElms param)
 
-spongeParam256 : SpongeParam 256
-spongeParam256 = MkSpongeParam 4 -- 4 * ElmBits = 256
+nonZeroBlockElms : (param : SpongeParam {totalBits}) -> Not (blockElms param = Z)
+nonZeroBlockElms (MkSpongeParam _ nonZero {prf1} {prf3} {prf4}) =
+  rewrite sym prf1 in
+  rewrite sym prf3 in
+  nonZeroLteNonZeroLeft prf4 nonZero
 
-spongeParam512 : SpongeParam 512
-spongeParam512 = MkSpongeParam 8 -- 8 * ElmBits = 512
+lteHashElms :
+  (param : SpongeParam {totalBits}) ->
+  LTE (hashElms param) (totalElms param)
+lteHashElms param = lteTransitive (lteHashBlockElms param) (lteBlockElms param)
+
+spongeParam256 : SpongeParam
+spongeParam256 = MkSpongeParam 4 SIsNotZ -- 4 * ElmBits = 256
+
+spongeParam512 : SpongeParam
+spongeParam512 = MkSpongeParam 8 SIsNotZ -- 8 * ElmBits = 512

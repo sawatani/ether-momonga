@@ -1,9 +1,9 @@
 module Data.Crypt.Keccak.Padding
 
 import Data.Bits
+import Data.Crypt.Keccak.SpongeParam
 import Data.Natural
 import Data.Vect
-import Data.Crypt.Keccak.SpongeParam
 
 %default total
 %access export
@@ -76,13 +76,15 @@ setLastBit {k} xs =
   rewrite sym $ plusCommutative k 1 in
   init xs ++ [e]
 
-pad : PadByte -> LazyList (Bits 8) -> LazyList (Vect (S k) Elem)
-pad {k} (MkPad pad) [] =
+pad : PadByte -> (n : Nat) -> {auto nonZero : Not (n = Z)} ->
+  LazyList (Bits 8) -> LazyList (Vect n Elem)
+pad _ Z _ {nonZero} = absurd $ nonZero Refl
+pad (MkPad pad) (S k) [] =
   let one = zeroExtend pad :: replicate k (intToBits 0) in
   [setLastBit one]
-pad {k} padByte xs =
+pad padByte (S k) xs {nonZero} =
   case loadElems padByte (S k) xs of
-       Right (remaining, es) => es :: pad padByte remaining
+       Right (remaining, es) => es :: pad padByte (S k) remaining {nonZero}
        Left (m ** (ys, lte)) =>
          let es = putTail (intToBits 0) ys in
          [setLastBit es]

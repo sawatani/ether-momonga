@@ -7,6 +7,10 @@ import Data.Primitives.Views
 %default total
 %access public export
 
+nonZeroLteNonZeroLeft : LTE m n -> Not (m = 0) -> Not (n = 0)
+nonZeroLteNonZeroLeft LTEZero sj = absurd $ sj Refl
+nonZeroLteNonZeroLeft (LTESucc _) _ = SIsNotZ
+
 eqMinusPlus : (n : Nat) -> (m : Nat) -> {auto lteMN: LTE m n} -> n - m + m = n
 eqMinusPlus n Z = rewrite minusZeroRight n in rewrite plusZeroRightNeutral n in Refl
 eqMinusPlus (S k) (S j) {lteMN} =

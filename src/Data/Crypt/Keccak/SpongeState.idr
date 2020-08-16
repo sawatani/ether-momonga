@@ -12,25 +12,21 @@ import Data.Crypt.Keccak.Permute64
 
 ||| Holder of bits of sponge state
 ||| This is a mutable and not thread-safe data
+public export
 record SpongeState e where
   constructor MkSpongeState
+  param : SpongeParam
   array : IOArray e
 
-%name SpongeState state, state1, state2
-
-SizeOfElem : Nat
-SizeOfElem = 5 * 5
-
-spongeState1600 : IO (SpongeState Elem)
-spongeState1600 = do
-  let defaultElem = MkBits $ natToBits {n = nextBytes ElmBits} 0
-  array <- newArray (fromNat SizeOfElem) defaultElem
-  pure $ MkSpongeState array
+spongeState1600 : SpongeParam {totalBits = 1600} -> IO (SpongeState Elem)
+spongeState1600 param = do
+  array <- newArray (fromNat $ totalElms param) $ intToBits 0
+  pure $ MkSpongeState param array
 
 write :
   (state : SpongeState Elem) ->
   Vect n Elem ->
-  {auto lteElms : LTE n SizeOfElem} ->
+  {auto lteElms : LTE n (totalElms $ param state)} ->
   IO ()
 write state xs = xorElem 0 xs
   where
@@ -44,7 +40,7 @@ write state xs = xorElem 0 xs
 read :
   (state : SpongeState Elem) ->
   (n : Nat) ->
-  {auto lteElms : LTE n SizeOfElem} ->
+  {auto lteElms : LTE n (totalElms $ param state)} ->
   IO (Vect n Elem)
 read state n = pick n
   where
