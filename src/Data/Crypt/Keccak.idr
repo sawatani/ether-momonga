@@ -19,7 +19,16 @@ writeBlocks state (block :: more) = do
   write state block
   writeBlocks state more
 
-keccak : SpongeParam {totalBits = 1600} -> LazyList (Bits 8) -> IO (List (Bits 8))
+elemToBytes : (n : Nat) -> Elem -> Vect n (Bits 8)
+elemToBytes Z _ = []
+elemToBytes (S k) elm =
+  let b = bitsToInt $ elm `and` intToBits 255 in
+  let shifted = elm `shiftRightLogical` intToBits 8 in
+  intToBits b :: elemToBytes k shifted
+
+keccak : (param : SpongeParam {totalBits = 1600}) ->
+  LazyList (Bits 8) ->
+  IO (List (Bits 8))
 keccak p src = do
   state <- spongeState1600 p
   let lteBlock = lteBlockElms $ param state
@@ -27,7 +36,5 @@ keccak p src = do
   let blocks = pad keccakPad (blockElms $ param state) {nonZero} src
   writeBlocks state blocks
   let lteHash = lteHashElms $ param state
-  let hashBytes = hashElms $ param state
-  elms <- read state hashBytes
-  ?answer
-  -- pure []
+  elms <- read state $ hashElms $ param state
+  pure $ toList $ concat $ elemToBytes ElmBytes `map` elms
