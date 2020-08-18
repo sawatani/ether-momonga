@@ -26,15 +26,15 @@ elemToBytes (S k) elm =
   let shifted = elm `shiftRightLogical` intToBits 8 in
   intToBits b :: elemToBytes k shifted
 
-keccak : (state : SpongeState Elem) ->
+keccak : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
-  IO (Vect (hashElms (param state) * ElmBytes) (Bits 8))
-keccak state src =
-  let lteBlock = lteBlockElms $ param state in
-  let nonZero = nonZeroBlockElms $ param state in
-  let blocks = pad keccakPad (blockElms $ param state) {nonZero} src in
-  do
-    writeBlocks state blocks
-    let lteHash = lteHashElms $ param state
-    elms <- read state $ hashElms $ param state
-    pure $ concat $ elemToBytes ElmBytes `map` elms
+  IO (List (Bits 8))
+keccak p src = do
+  state <- spongeState1600 p
+  let lteBlock = lteBlockElms $ param state
+  let nonZero = nonZeroBlockElms $ param state
+  let blocks = pad keccakPad (blockElms $ param state) {nonZero} src
+  writeBlocks state blocks
+  let lteHash = lteHashElms $ param state
+  elms <- read state $ hashElms $ param state
+  pure $ toList $ concat $ elemToBytes ElmBytes `map` elms
