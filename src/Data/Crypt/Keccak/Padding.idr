@@ -76,15 +76,27 @@ setLastBit {k} xs =
   rewrite sym $ plusCommutative k 1 in
   init xs ++ [e]
 
-pad : PadByte -> (n : Nat) -> {auto nonZero : Not (n = Z)} ->
+pad : PadByte -> (nonZero : Not (n = Z)) ->
   LazyList (Bits 8) -> LazyList (Vect n Elem)
-pad _ Z _ {nonZero} = absurd $ nonZero Refl
-pad (MkPad pad) (S k) [] =
+pad _ nonZero _ {n=Z} = absurd $ nonZero Refl
+pad (MkPad pad) _ [] {n=(S k)} =
   let one = zeroExtend pad :: replicate k (intToBits 0) in
   [setLastBit one]
-pad padByte (S k) xs {nonZero} =
+pad padByte nonZero xs {n=(S k)} =
   case loadElems padByte (S k) xs of
-       Right (remaining, es) => es :: pad padByte (S k) remaining {nonZero}
+       Right (remaining, es) => es :: pad padByte nonZero remaining
        Left (m ** (ys, lte)) =>
          let es = putTail (intToBits 0) ys in
          [setLastBit es]
+
+listToHex : Vect n (Bits m) -> String
+listToHex [] = ""
+listToHex (z :: xs) = listToHex xs ++ bitsToHexStr z
+
+partial
+printHex : LazyList (Vect n (Bits m)) -> IO ()
+printHex [] = pure ()
+printHex (x :: more) = do
+  let hex = listToHex x
+  printLn $ hex ++ ": len=" ++ show (length hex)
+  printHex more

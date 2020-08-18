@@ -10,6 +10,7 @@ import Data.Vect
 %default total
 %access export
 
+partial
 writeBlocks : (state : SpongeState Elem) ->
   LazyList (Vect (blockElms $ param state) Elem) ->
   {auto lte: LTE (blockElms $ param state) (totalElms $ param state)} ->
@@ -26,15 +27,20 @@ elemToBytes (S k) elm =
   let shifted = elm `shiftRightLogical` intToBits 8 in
   intToBits b :: elemToBytes k shifted
 
+partial
 keccak : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
   IO (List (Bits 8))
 keccak p src = do
   state <- spongeState1600 p
   let lteBlock = lteBlockElms $ param state
-  let nonZero = nonZeroBlockElms $ param state
-  let blocks = pad keccakPad (blockElms $ param state) {nonZero} src
+  let blocks = pad keccakPad (nonZeroBlockElms $ param state) src
   writeBlocks state blocks
+  permute state
   let lteHash = lteHashElms $ param state
   elms <- read state $ hashElms $ param state
   pure $ toList $ concat $ elemToBytes ElmBytes `map` elms
+
+toHex : List (Bits n) -> String
+toHex [] = ""
+toHex (x :: xs) = toHex xs ++ bitsToHexStr x
