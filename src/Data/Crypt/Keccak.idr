@@ -10,8 +10,8 @@ import Data.Vect
 %default total
 %access export
 
-partial
-writeBlocks : (state : SpongeState Elem) ->
+writeBlocks :
+  (state : SpongeState Elem) ->
   LazyList (Vect (blockElms $ param state) Elem) ->
   {auto lte: LTE (blockElms $ param state) (totalElms $ param state)} ->
   IO ()
@@ -27,7 +27,6 @@ elemToBytes (S k) elm =
   let shifted = elm `shiftRightLogical` intToBits 8 in
   intToBits b :: elemToBytes k shifted
 
-partial
 keccak : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
   IO (List (Bits 8))

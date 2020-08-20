@@ -7,6 +7,8 @@ import Data.Primitives.Views
 %default total
 %access public export
 
+lteNotLteSuccEq : LTE m n -> Not (LTE (S m) n) -> m = n
+
 nonZeroLteNonZeroLeft : LTE m n -> Not (m = 0) -> Not (n = 0)
 nonZeroLteNonZeroLeft LTEZero sj = absurd $ sj Refl
 nonZeroLteNonZeroLeft (LTESucc _) _ = SIsNotZ
