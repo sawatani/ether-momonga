@@ -3,11 +3,25 @@ module Data.Natural
 import Data.Bits
 import Data.Fin
 import Data.Primitives.Views
+import Decidable.Order
 
 %default total
 %access public export
 
+notLteGt : Not (LTE m n) -> LTE (S n) m -- GT m n
+notLteGt {m = Z} {n = Z} notLTE = absurd $ notLTE lteRefl
+notLteGt {m = (S k)} {n = Z} _ = LTESucc LTEZero
+notLteGt {m = Z} {n = (S k)} notLTE = absurd $ notLTE LTEZero
+notLteGt {m = (S j)} {n = (S k)} notLTE =
+  case isLTE j k of
+       (Yes prf) => absurd $ notLTE $ LTESucc prf
+       (No contra) => LTESucc $ notLteGt contra
+
 lteNotLteSuccEq : LTE m n -> Not (LTE (S m) n) -> m = n
+lteNotLteSuccEq {m} {n} lteM notLTE =
+  let gt = notLteGt notLTE in
+  let lteN = fromLteSucc gt in
+  antisymmetric m n lteM lteN
 
 nonZeroLteNonZeroLeft : LTE m n -> Not (m = 0) -> Not (n = 0)
 nonZeroLteNonZeroLeft LTEZero sj = absurd $ sj Refl
