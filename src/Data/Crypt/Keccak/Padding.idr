@@ -3,15 +3,11 @@ module Data.Crypt.Keccak.Padding
 import Data.Bits
 import Data.Crypt.Keccak.SpongeParam
 import Data.Natural
+import Data.Iterable
 import Data.Vect
 
 %default total
 %access export
-
-public export
-data LazyList : Type -> Type where
-  Nil : LazyList a
-  (::) : a -> Lazy (LazyList a) -> LazyList a
 
 data PadByte : Type where
   MkPad : Bits 8 -> PadByte
@@ -32,17 +28,6 @@ combine {n = S k} (v :: vs) {lteN} =
   let shifted = extended `shiftLeft` (intToBits . fromNat $ k * 8) in
   let lteK = lteSuccLeft lteN in
   shifted `plus` combine vs
-
-putTail : a -> Vect n a -> {auto lteNM : LTE n m} -> Vect m a
-putTail {n} {m} x xs =
-  rewrite sym $ eqMinusPlus m n in
-  rewrite plusCommutative (m - n) n in
-  xs ++ replicate (m - n) x
-
-append : Vect n a -> a -> Vect (S n) a
-append xs x {n} =
-  rewrite sym $ plusCommutative n 1 in
-  xs ++ [x]
 
 setLastBit : Vect (S k) Elem -> Vect (S k) Elem
 setLastBit {k} xs =
@@ -67,7 +52,7 @@ loadAndPad (MkPad pad) {n=(S k)} nonZero [] building adding {ltB} {nB} =
   let added = e :: adding in
   let es = putTail (intToBits 0) added in
   [setLastBit es]
-loadAndPad padByte {n=(S k)} nonZero (x :: xs) building adding {ltB} {ltA} {nB} {nA} =
+loadAndPad padByte {n=(S k)} nonZero (x :: xs) building adding {ltA} {nB} {nA} =
   let addedBuilding = building `append` x in
   case isLTE (S (S nB)) ElmBytes of
        (Yes prf) => loadAndPad padByte nonZero xs addedBuilding adding
@@ -78,8 +63,7 @@ loadAndPad padByte {n=(S k)} nonZero (x :: xs) building adding {ltB} {ltA} {nB} 
               (Yes prf) => loadAndPad padByte nonZero xs [] added
               (No contra) =>
                 let eqN = lteNotLteSuccEq ltA contra in
-                rewrite sym eqN in
-                added :: loadAndPad padByte (rewrite eqN in nonZero) xs [] []
+                (rewrite sym eqN in added) :: loadAndPad padByte nonZero xs [] []
 
 pad : PadByte -> (nonZero : Not (n = Z)) ->
   LazyList (Bits 8) -> LazyList (Vect n Elem)
