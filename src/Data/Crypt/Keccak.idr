@@ -18,6 +18,7 @@ writeBlocks :
 writeBlocks state [] = pure ()
 writeBlocks state (block :: more) = do
   write state block
+  permute state
   writeBlocks state more
 
 elemToBytes : (n : Nat) -> Elem -> Vect n (Bits 8)
@@ -35,7 +36,6 @@ keccak p src = do
   let lteBlock = lteBlockElms $ param state
   let blocks = pad keccakPad (nonZeroBlockElms $ param state) src
   writeBlocks state blocks
-  permute state
   let lteHash = lteHashElms $ param state
   elms <- read state $ hashElms $ param state
   pure $ toList $ concat $ elemToBytes ElmBytes `map` elms
