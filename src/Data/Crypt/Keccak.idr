@@ -5,6 +5,7 @@ import Data.Crypt.Keccak.SpongeParam
 import Data.Crypt.Keccak.SpongeState
 import Data.Crypt.Keccak.Padding
 import Data.Crypt.Keccak.Permute64
+import Data.Iterable
 import Data.Vect
 
 %default total

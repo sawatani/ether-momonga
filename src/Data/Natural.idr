@@ -8,7 +8,7 @@ import Decidable.Order
 %default total
 %access public export
 
-notLteGt : Not (LTE m n) -> LTE (S n) m -- GT m n
+notLteGt : Not (LTE m n) -> GT m n -- LTE (S n) m
 notLteGt {m = Z} {n = Z} notLTE = absurd $ notLTE lteRefl
 notLteGt {m = (S k)} {n = Z} _ = LTESucc LTEZero
 notLteGt {m = Z} {n = (S k)} notLTE = absurd $ notLTE LTEZero

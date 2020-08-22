@@ -44,15 +44,15 @@ loadAndPad :
   {auto ltB : LT nB ElmBytes} ->
   {auto ltA : LT nA n} ->
   LazyList (Vect n Elem)
-loadAndPad _ {n=Z} nonZero _ _ _ = void $ nonZero Refl
-loadAndPad (MkPad pad) {n=(S k)} nonZero [] building adding {ltB} {nB} =
+loadAndPad _ {n = Z} nonZero _ _ _ = void $ nonZero Refl
+loadAndPad (MkPad pad) {n = (S k)} nonZero [] building adding {ltB} {nB} =
   let ps = zeroExtend pad `shiftLeft` (intToBits . fromNat $ nB * 8) in
   let lteB = lteSuccLeft ltB in
   let e = combine building `plus` ps in
   let added = e :: adding in
-  let es = putTail (intToBits 0) added in
+  let es = padTail (intToBits 0) added in
   [setLastBit es]
-loadAndPad padByte {n=(S k)} nonZero (x :: xs) building adding {ltA} {nB} {nA} =
+loadAndPad padByte {n = (S k)} nonZero (x :: xs) building adding {ltA} {nB} {nA} =
   let addedBuilding = building `append` x in
   case isLTE (S (S nB)) ElmBytes of
        (Yes prf) => loadAndPad padByte nonZero xs addedBuilding adding
