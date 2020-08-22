@@ -4,4 +4,13 @@ sourcedir = src
 
 pkgs = contrib
 
-modules Blockchain.Ethereum
+modules = Blockchain.Ethereum.Address
+        , Blockchain.Ethereum.HexString
+        , Data.Crypt.Keccak
+        , Data.Crypt.Keccak.Padding
+        , Data.Crypt.Keccak.Permute64
+        , Data.Crypt.Keccak.SpongeState
+        , Data.Crypt.Keccak.SpongeParam
+        , Data.Crypt.LFSR
+        , Data.Iterable
+        , Data.Natural
