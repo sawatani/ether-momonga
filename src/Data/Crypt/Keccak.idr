@@ -40,7 +40,3 @@ keccak p src = do
   let lteHash = lteHashElms $ param state
   elms <- read state $ hashElms $ param state
   pure $ toList $ concat $ elemToBytes ElmBytes `map` elms
-
-toHex : List (Bits n) -> String
-toHex [] = ""
-toHex (x :: xs) = toHex xs ++ bitsToHexStr x

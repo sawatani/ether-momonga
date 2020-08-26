@@ -22,12 +22,15 @@ ElmBytes : Nat
 ElmBytes = divNatNZ ElmBits 8 SIsNotZ
 
 combine : Vect n (Bits 8) -> {auto lteN : LTE n ElmBytes} -> Elem
-combine [] = intToBits 0
-combine {n = S k} (v :: vs) {lteN} =
-  let extended = zeroExtend v in
-  let shifted = extended `shiftLeft` (intToBits . fromNat $ k * 8) in
-  let lteK = lteSuccLeft lteN in
-  shifted `plus` combine vs
+combine {n} xs = combine' xs {lteM = lteRefl}
+  where
+    combine' : Vect m (Bits 8) -> {auto lteM : LTE m n} -> Elem
+    combine' [] = intToBits 0
+    combine' {m = S k} (v :: vs) {lteM} =
+      let extended = zeroExtend v in
+      let shifted = extended `shiftLeft` (intToBits . fromNat $ (n - S k) * 8) in
+      let lteK = lteSuccLeft lteM in
+      shifted `plus` combine' vs
 
 setLastBit : Vect (S k) Elem -> Vect (S k) Elem
 setLastBit {k} xs =
@@ -49,7 +52,7 @@ loadAndPad (MkPad pad) {n = (S k)} nonZero [] building adding {ltB} {nB} =
   let ps = zeroExtend pad `shiftLeft` (intToBits . fromNat $ nB * 8) in
   let lteB = lteSuccLeft ltB in
   let e = combine building `plus` ps in
-  let added = e :: adding in
+  let added = adding `append` e in
   let es = padTail (intToBits 0) added in
   [setLastBit es]
 loadAndPad padByte {n = (S k)} nonZero (x :: xs) building adding {ltA} {nB} {nA} =
@@ -69,14 +72,3 @@ pad : PadByte -> (nonZero : Not (n = Z)) ->
   LazyList (Bits 8) -> LazyList (Vect n Elem)
 pad _ nonZero _ {n=Z} = void $ nonZero Refl
 pad padByte nonZero xs {n=(S k)} = loadAndPad padByte nonZero xs [] []
-
-listToHex : Vect n (Bits m) -> String
-listToHex [] = ""
-listToHex (z :: xs) = listToHex xs ++ bitsToHexStr z
-
-printHex : LazyList (Vect n (Bits m)) -> IO ()
-printHex [] = pure ()
-printHex (x :: more) = do
-  let hex = listToHex x
-  printLn $ hex ++ ": len=" ++ show (length hex)
-  printHex more

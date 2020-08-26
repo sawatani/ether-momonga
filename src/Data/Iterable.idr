@@ -10,6 +10,16 @@ data LazyList : Type -> Type where
   Nil : LazyList a
   (::) : a -> Lazy (LazyList a) -> LazyList a
 
+%name LazyList a, xs, ys
+
+fromList : List a -> LazyList a
+fromList [] = []
+fromList (x :: xs) = x :: fromList xs
+
+toList : LazyList a -> List a
+toList [] = []
+toList (x :: xs) = x :: toList xs
+
 append : Vect n a -> a -> Vect (S n) a
 append xs x {n} =
   rewrite sym $ plusCommutative n 1 in

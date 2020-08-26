@@ -14,3 +14,6 @@ modules = Blockchain.Ethereum.Address
         , Data.Crypt.LFSR
         , Data.Iterable
         , Data.Natural
+        , Test.All
+
+tests = Test.All.testAll
