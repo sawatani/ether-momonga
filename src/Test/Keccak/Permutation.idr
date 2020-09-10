@@ -85,13 +85,20 @@ namespace rho
   testRotations = do
     let ns = sort rotations
     let given = map snd ns
-    assertEquals given [  0, 36,  3, 41, 18
-                       ,  1, 44, 10, 45,  2
-                       , 62,  6, 43, 15, 61
-                       , 28, 55, 25, 21, 56
-                       , 27, 20, 39,  8, 14 ]
+    assertEquals given [  0,  1, 62, 28, 27
+                       , 36, 44,  6, 55, 20
+                       ,  3, 10, 43, 25, 39
+                       , 41, 45, 15, 21,  8
+                       , 18,  2, 61, 56, 14 ]
 
 namespace pi
+  constants : Vect 25 Nat
+  constants = [  0,  6, 12, 18, 24
+              ,  3,  9, 10, 16, 22
+              ,  1,  7, 13, 19, 20
+              ,  4,  5, 11, 17, 23
+              ,  2,  8, 14, 15, 21]
+
   genIndexPairs : (n : Nat) -> Vect n (Nat, Nat)
   genIndexPairs Z = []
   genIndexPairs (S k) = (k, calcNext k) :: genIndexPairs k
@@ -103,11 +110,7 @@ namespace pi
   testIndexes : IO Bool
   testIndexes = do
     let given = genIndexPairs 25
-    assertEquals given $ indexList $ reverse [ 0, 15, 5, 20, 10
-                                             , 6, 21, 11, 1, 16
-                                             , 12, 2, 17, 7, 22
-                                             , 18, 8, 23, 13, 3
-                                             , 24, 14, 4, 19, 9 ]
+    assertEquals given $ indexList $ reverse constants
 
   placeIndex : IOArray Elem -> Nat -> IO ()
   placeIndex x Z = pure ()
@@ -121,51 +124,44 @@ namespace pi
     placeIndex array 25
     stepPI array
     given <- toListArray array 25
-    assertEquals given [ 0, 15, 5, 20, 10
-                       , 6, 21, 11, 1, 16
-                       , 12, 2, 17, 7, 22
-                       , 18, 8, 23, 13, 3
-                       , 24, 14, 4, 19, 9 ]
+    assertEquals given $ toList constants
 
 namespace chi
   testXorColumns : IO Bool
   testXorColumns= do
     array <- mkArray 25
     -- column 0
-    unsafeWriteArray array  0 $ intToBits 1
-    unsafeWriteArray array  5 $ intToBits 1
-    unsafeWriteArray array 10 $ intToBits 1
-    unsafeWriteArray array 15 $ intToBits 1
-    unsafeWriteArray array 20 $ intToBits 1
+    unsafeWriteArray array 0 $ intToBits 1
+    unsafeWriteArray array 1 $ intToBits 1
+    unsafeWriteArray array 2 $ intToBits 1
+    unsafeWriteArray array 3 $ intToBits 1
+    unsafeWriteArray array 4 $ intToBits 1
     -- column 1
-    unsafeWriteArray array  1 $ intToBits 1
-    unsafeWriteArray array  6 $ intToBits 2
-    unsafeWriteArray array 11 $ intToBits 3
-    unsafeWriteArray array 16 $ intToBits 4
-    unsafeWriteArray array 21 $ intToBits 5
+    unsafeWriteArray array 5 $ intToBits 1
+    unsafeWriteArray array 6 $ intToBits 2
+    unsafeWriteArray array 7 $ intToBits 3
+    unsafeWriteArray array 8 $ intToBits 4
+    unsafeWriteArray array 9 $ intToBits 5
     stepCHI array
     given <- toListArray array 25
-    assertEquals given [ 1,  0,  0,  0,  0
-                       , 1,  6,  0,  0,  0
-                       , 1,  2,  0,  0,  0
-                       , 1,  4,  0,  0,  0
-                       , 1,  7,  0,  0,  0 ]
+    assertEquals given [ 1,  1,  1,  1,  1
+                       , 0,  6,  2,  4,  7
+                       , 0,  0,  0,  0,  0
+                       , 0,  0,  0,  0,  0
+                       , 0,  0,  0,  0,  0 ]
 
 namespace iota
-  constants : List Integer
-  constants = [ 0x0000000000000001, 0x0000000000008082, 0x800000000000808A
-              , 0x8000000080008000, 0x000000000000808B, 0x0000000080000001
-              , 0x8000000080008081, 0x8000000000008009, 0x000000000000008A
-              , 0x0000000000000088, 0x0000000080008009, 0x000000008000000A
-              , 0x000000008000808B, 0x800000000000008B, 0x8000000000008089
-              , 0x8000000000008003, 0x8000000000008002, 0x8000000000000080
-              , 0x000000000000800A, 0x800000008000000A, 0x8000000080008081
-              , 0x8000000000008080, 0x0000000080000001, 0x8000000080008008 ]
-
   testRoundValues : IO Bool
   testRoundValues = do
     let given = toList $ bitsToInt `map` iota.roundValues
-    assertEquals given constants
+    assertEquals given [ 0x0000000000000001, 0x0000000000008082, 0x800000000000808A
+                       , 0x8000000080008000, 0x000000000000808B, 0x0000000080000001
+                       , 0x8000000080008081, 0x8000000000008009, 0x000000000000008A
+                       , 0x0000000000000088, 0x0000000080008009, 0x000000008000000A
+                       , 0x000000008000808B, 0x800000000000008B, 0x8000000000008089
+                       , 0x8000000000008003, 0x8000000000008002, 0x8000000000000080
+                       , 0x000000000000800A, 0x800000008000000A, 0x8000000080008081
+                       , 0x8000000000008080, 0x0000000080000001, 0x8000000080008008 ]
 
 testAll : IO ()
 testAll = do

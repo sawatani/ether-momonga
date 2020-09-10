@@ -56,7 +56,7 @@ namespace rho
   calcIndex t =
     let vs = getCol 0 $ powerBase t in
     let ij = map (toIntNat . finToNat . restrict 4) vs in
-    5 * (index 0 ij) + (index 1 ij)
+    5 * (index 1 ij) + (index 0 ij)
 
   zipPair : (k : Nat) -> (Int, Nat)
   zipPair Z = (0, Z)
@@ -78,11 +78,11 @@ namespace rho
 namespace pi
   calcNext : Nat -> Nat
   calcNext a =
-    let i = divNatNZ a 5 SIsNotZ in
-    let j = modNatNZ a 5 SIsNotZ in
-    let i' = modNatNZ (3 * j + i) 5 SIsNotZ in
-    let j' = i in
-    5 * i' + j'
+    let y = divNatNZ a 5 SIsNotZ in
+    let x = modNatNZ a 5 SIsNotZ in
+    let x' = modNatNZ (3 * y + x) 5 SIsNotZ in
+    let y' = x in
+    5 * y' + x'
 
   pairs : Stream Nat
   pairs = Stream.iterate calcNext 1
@@ -105,38 +105,38 @@ namespace pi
         unsafeWriteArray array lastIndex firstElem
 
 namespace chi
-  calcPos : (i : Nat) -> (j : Nat) -> Int
-  calcPos i j =
-    let i' = modNatNZ i 5 SIsNotZ in
-    let j' = modNatNZ j 5 SIsNotZ in
-    toIntNat $ 5 * i' + j'
+  calcPos : (x : Nat) -> (y : Nat) -> Int
+  calcPos x y =
+    let y' = modNatNZ y 5 SIsNotZ in
+    let x' = modNatNZ x 5 SIsNotZ in
+    toIntNat $ 5 * y' + x'
 
   data Cache : Type where
     NoCache : Cache
     MkCache : Elem -> Cache
 
-  readAt : IOArray Elem -> (columnIndex : Nat) ->
-    Cache -> (rowIndex : Nat) -> IO Elem
-  readAt array columnIndex NoCache rowIndex = unsafeReadArray array $ calcPos rowIndex columnIndex
+  readAt : IOArray Elem -> (y : Nat) ->
+    Cache -> (x : Nat) -> IO Elem
+  readAt array y NoCache x = unsafeReadArray array $ calcPos x y
   readAt _ _ (MkCache e) _ = pure e
 
-  eachColumn : IOArray Elem -> (columnIndex : Nat) ->
-    (Cache, Cache) -> (rowIndex : Nat) ->
+  eachColumn : IOArray Elem -> (y : Nat) ->
+    (Cache, Cache) -> (x : Nat) ->
     IO (Cache, Cache)
-  eachColumn array columnIndex (p1, p2) rowIndex =
-    let at = readAt array columnIndex in
-    let pos = calcPos rowIndex columnIndex in
+  eachColumn array y (p1, p2) x =
+    let at = readAt array y in
+    let pos = calcPos x y in
     do
       e0 <- unsafeReadArray array pos
-      e1 <- p1 `at` (rowIndex + 1)
-      e2 <- p2 `at` (rowIndex + 2)
+      e1 <- p1 `at` (x + 1)
+      e2 <- p2 `at` (x + 2)
       let e = e0 `xor` (complement e1 `and` e2)
       unsafeWriteArray array pos e
       pure (MkCache e0, MkCache e1)
 
   stepCHI : IOArray Elem -> IO ()
-  stepCHI array = foldlM (\_, columnIndex => do
-    foldlM (eachColumn array columnIndex) (NoCache, NoCache) [4..0]
+  stepCHI array = foldlM (\_, y => do
+    foldlM (eachColumn array y) (NoCache, NoCache) [4..0]
     pure ()
   ) () [4..0]
 
