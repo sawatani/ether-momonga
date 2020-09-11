@@ -8,7 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Cabal
         run: |
-          sudo apt-get install cabal-install make
+          sudo apt update
+          sudo apt install cabal-install make
           cabal update
       - name: Install Idris by Cabal
         run: |
