@@ -6,14 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Cabal
-        run: |
-          sudo apt update
-          sudo apt install cabal-install make
-          cabal update
+      - uses: actions/setup-haskell@v1.1
+        with:
+          ghc-version: '8.10.2'
+          enable-stack: true
+          stack-version: 'latest'
       - name: Install Idris by Cabal
         run: |
-          cabal install idris
+          stack install idris
       - name: Run tests
         run: |
           idris --testpkg ether-momonga.ipkg

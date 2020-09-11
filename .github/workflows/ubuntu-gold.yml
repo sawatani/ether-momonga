@@ -6,10 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Stack
-        run: |
-          curl -sSL https://get.haskellstack.org/ | sh
-      - name: Install Idris by Cabal
+      - uses: actions/setup-haskell@v1.1
+        with:
+          ghc-version: '8.10.2'
+          enable-stack: true
+          stack-version: 'latest'
+      - name: Install Idris by Stack
         run: |
           sudo apt install binutils-gold
           stack install idris --ghc-options --with-ld=ld.gold
