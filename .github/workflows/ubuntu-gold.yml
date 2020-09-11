@@ -1,0 +1,20 @@
+name: Tests in Ubuntu with Gold
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Cabal
+        run: |
+          sudo apt update
+          sudo apt install cabal-install make
+          cabal update
+      - name: Install Idris by Cabal
+        run: |
+          sudo apt install binutils-gold
+          cabal install idris --with-ld=ld.gold
+      - name: Run tests
+        run: |
+          idris --testpkg ether-momonga.ipkg
