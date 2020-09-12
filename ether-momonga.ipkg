@@ -6,10 +6,11 @@ pkgs = contrib
 
 modules = Blockchain.Ethereum.Address
         , Blockchain.Ethereum.HexString
+        , Data.Bytes
         , Data.Crypt.Keccak
+        , Data.Crypt.Keccak.Hash
         , Data.Crypt.Keccak.Padding
         , Data.Crypt.Keccak.Permute64
-        , Data.Crypt.Keccak.Hash
         , Data.Crypt.Keccak.SpongeParam
         , Data.Crypt.LFSR
         , Data.Iterable

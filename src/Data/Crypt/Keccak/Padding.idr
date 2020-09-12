@@ -18,9 +18,6 @@ keccakPad = MkPad $ intToBits 1
 sha3Pad : PadByte
 sha3Pad = MkPad $ intToBits 6
 
-ElmBytes : Nat
-ElmBytes = divNatNZ ElmBits 8 SIsNotZ
-
 combine : Vect n (Bits 8) -> {auto lteN : LTE n ElmBytes} -> Elem
 combine {n} xs = combine' xs {lteM = lteRefl}
   where

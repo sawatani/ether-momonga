@@ -1,6 +1,7 @@
 module Data.Crypt.Keccak
 
 import Data.Bits
+import Data.Bytes
 import Data.Crypt.Keccak.SpongeParam
 import Data.Crypt.Keccak.Hash
 import Data.Crypt.Keccak.Padding
@@ -13,5 +14,5 @@ import Data.Vect
 
 keccak : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
-  IO (Vect (hashElms param * ElmBytes) (Bits 8))
+  IO (LittleEndian (hashElms param * ElmBytes * 8))
 keccak = hash keccakPad

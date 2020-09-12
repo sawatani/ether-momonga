@@ -3,6 +3,7 @@ module Data.Crypt.Keccak.SpongeParam
 import Data.Bits
 import Data.Nat
 import Data.Natural
+import Data.Vect
 import Prelude.Nat
 
 %default total
@@ -19,6 +20,20 @@ ElmBits = 2 `pow` LogBits
 public export
 Elem : Type
 Elem = Bits ElmBits
+
+public export
+ElmBytes : Nat
+ElmBytes = divNatNZ ElmBits 8 SIsNotZ
+
+elemToBytes : Elem -> Vect ElmBytes (Bits 8)
+elemToBytes = eToB ElmBytes
+  where
+    eToB : (n : Nat) -> Elem -> Vect n (Bits 8)
+    eToB Z _ = []
+    eToB (S k) elm =
+      let b = bitsToInt $ elm `and` intToBits 255 in
+      let shifted = elm `shiftRightLogical` intToBits 8 in
+      intToBits b :: eToB k shifted
 
 lteByElmBits : (a : Nat) ->
   (b : Nat) ->
@@ -50,9 +65,6 @@ nonZeroHashElms (MkSpongeParam _ nonZero) = nonZero
 
 capaticyElms : SpongeParam {totalBits} -> Nat
 capaticyElms (MkSpongeParam hashElms _ {prf1}) = hashElms * 2
-
-hashBits : SpongeParam -> Nat
-hashBits param = hashElms param * ElmBits
 
 lteCapacityElms :
   (param : SpongeParam {totalBits}) ->

@@ -1,6 +1,7 @@
 module Data.Crypt.Keccak.Hash
 
 import Data.Bits
+import Data.Bytes
 import Data.IOArray
 import Data.Vect
 import Data.Natural
@@ -51,20 +52,14 @@ writeBlocks array (block :: more) = do
   permute array
   writeBlocks array more
 
-elemToBytes : (n : Nat) -> Elem -> Vect n (Bits 8)
-elemToBytes Z _ = []
-elemToBytes (S k) elm =
-  let b = bitsToInt $ elm `and` intToBits 255 in
-  let shifted = elm `shiftRightLogical` intToBits 8 in
-  intToBits b :: elemToBytes k shifted
-
 hash : PadByte ->
   (param : SpongeParam) ->
   LazyList (Bits 8) ->
-  IO (Vect (hashElms param * ElmBytes) (Bits 8))
+  IO (LittleEndian (hashElms param * ElmBytes * 8))
 hash padByte param src = do
   array <- mkArray param
   let blocks = pad padByte (nonZeroBlockElms param) src
   writeBlocks array blocks
   elms <- read array $ hashElms param
-  pure $ concat $ elemToBytes ElmBytes `map` elms
+  let bytes = concat $ elemToBytes `map` elms
+  pure $ MkLittleEndian bytes
