@@ -102,8 +102,14 @@ lteHashElms :
   LTE (hashElms param) (totalElms param)
 lteHashElms param = lteTransitive (lteHashBlockElms param) (lteBlockElms param)
 
-spongeParam256 : SpongeParam
-spongeParam256 = MkSpongeParam 4 SIsNotZ -- 4 * ElmBits = 256
+Param256 : SpongeParam
+Param256 = MkSpongeParam 4 SIsNotZ
 
-spongeParam512 : SpongeParam
-spongeParam512 = MkSpongeParam 8 SIsNotZ -- 8 * ElmBits = 512
+eqHash256 : (256 = hashElms Param256 * ElmBytes * 8)
+eqHash256 = Refl
+
+Param512 : SpongeParam
+Param512 = MkSpongeParam 8 SIsNotZ
+
+eqHash512 : (512 = hashElms Param512 * ElmBytes * 8)
+eqHash512 = Refl

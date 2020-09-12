@@ -15,7 +15,7 @@ import Test.Unit.Runners
 
 testEmpty256 : IO Bool
 testEmpty256 = do
-  hash <- keccak spongeParam256 []
+  hash <- keccak256 []
   let given = toHex hash
   assertEquals given "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
 
