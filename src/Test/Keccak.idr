@@ -13,50 +13,24 @@ import Test.Unit.Runners
 %default total
 %access export
 
-testKeccakEmpty256 : IO Bool
-testKeccakEmpty256 = do
-  hash <- keccak256 []
+check : (LazyList (Bits 8) -> IO (LittleEndian _)) -> String -> IO Bool
+check f hex = do
+  hash <- f []
   let given = toHex hash
-  assertEquals given "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+  assertEquals given hex
 
-testKeccakEmpty384 : IO Bool
-testKeccakEmpty384 = do
-  hash <- keccak384 []
-  let given = toHex hash
-  assertEquals given "2c23146a63a29acf99e73b88f8c24eaa7dc60aa771780ccc006afbfa8fe2479b2dd2b21362337441ac12b515911957ff"
-
-testKeccakEmpty512 : IO Bool
-testKeccakEmpty512 = do
-  hash <- keccak512 []
-  let given = toHex hash
-  assertEquals given "0eab42de4c3ceb9235fc91acffe746b29c29a8c366b7c60e4e67c466f36a4304c00fa9caf9d87976ba469bcbe06713b435f091ef2769fb160cdab33d3670680e"
-
-testSha3Empty256 : IO Bool
-testSha3Empty256 = do
-  hash <- sha3256 []
-  let given = toHex hash
-  assertEquals given "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
-
-testSha3Empty384 : IO Bool
-testSha3Empty384 = do
-  hash <- sha3384 []
-  let given = toHex hash
-  assertEquals given "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004"
-
-testSha3Empty512 : IO Bool
-testSha3Empty512 = do
-  hash <- sha3512 []
-  let given = toHex hash
-  assertEquals given "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"
+testEmpty : IO Bool
+testEmpty = do
+  check keccak256 "C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A470"
+  check keccak384 "2C23146A63A29ACF99E73B88F8C24EAA7DC60AA771780CCC006AFBFA8FE2479B2DD2B21362337441AC12B515911957FF"
+  check keccak512 "0EAB42DE4C3CEB9235FC91ACFFE746B29C29A8C366B7C60E4E67C466F36A4304C00FA9CAF9D87976BA469BCBE06713B435F091EF2769FB160CDAB33D3670680E"
+  check sha3256 "A7FFC6F8BF1ED76651C14756A061D662F580FF4DE43B49FA82D80A4B80F8434A"
+  check sha3384 "0C63A75B845E4F7D01107D852E4C2485C51A50AAAA94FC61995E71BBEE983A2AC3713831264ADB47FB6BD1E058D5F004"
+  check sha3512 "A69F73CCA23A9AC5C8B567DC185A756E97C982164FE25859E0D1DCC1475C80A615B2123AF1F5F94C11E3E9402C3AC558F500199D95B6D3E301758586281DCD26"
 
 testAll : IO ()
 testAll = do
   Reporting.runTests [
-    testKeccakEmpty256
-  , testKeccakEmpty384
-  , testKeccakEmpty512
-  , testSha3Empty256
-  , testSha3Empty384
-  , testSha3Empty512
+    testEmpty
   ]
   pure ()
