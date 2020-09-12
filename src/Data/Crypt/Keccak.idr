@@ -20,5 +20,8 @@ keccak = hash keccakPad
 keccak256 : LazyList (Bits 8) -> IO (LittleEndian 256)
 keccak256 src = rewrite eqHash256 in keccak Param256 src
 
+keccak384 : LazyList (Bits 8) -> IO (LittleEndian 384)
+keccak384 src = rewrite eqHash384 in keccak Param384 src
+
 keccak512 : LazyList (Bits 8) -> IO (LittleEndian 512)
 keccak512 src = rewrite eqHash512 in keccak Param512 src
