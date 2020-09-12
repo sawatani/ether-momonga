@@ -9,7 +9,7 @@ modules = Blockchain.Ethereum.Address
         , Data.Crypt.Keccak
         , Data.Crypt.Keccak.Padding
         , Data.Crypt.Keccak.Permute64
-        , Data.Crypt.Keccak.SpongeState
+        , Data.Crypt.Keccak.Hash
         , Data.Crypt.Keccak.SpongeParam
         , Data.Crypt.LFSR
         , Data.Iterable

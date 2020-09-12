@@ -12,7 +12,7 @@ import Test.Unit.Runners
 %default total
 %access export
 
-toHex : List (Bits n) -> String
+toHex : Vect m (Bits n) -> String
 toHex [] = ""
 toHex (x :: xs) = toHex xs ++ bitsToHexStr x
 
