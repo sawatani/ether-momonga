@@ -9,6 +9,7 @@ import Data.Iterable
 import Data.Vect
 import Test.Unit.Assertions
 import Test.Unit.Runners
+import Test.Keccak256
 
 %default total
 %access export
@@ -32,5 +33,6 @@ testAll : IO ()
 testAll = do
   Reporting.runTests [
     testEmpty
+  , assumeAll
   ]
   pure ()

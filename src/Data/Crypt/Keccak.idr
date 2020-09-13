@@ -12,6 +12,7 @@ import Data.Vect
 %default total
 %access export
 
+private
 keccak : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
   IO (LittleEndian (hashElms param * ElmBytes * 8))
@@ -26,6 +27,7 @@ keccak384 src = rewrite eqHash384 in keccak Param384 src
 keccak512 : LazyList (Bits 8) -> IO (LittleEndian 512)
 keccak512 src = rewrite eqHash512 in keccak Param512 src
 
+private
 sha3 : (param : SpongeParam {totalBits = 1600}) ->
   LazyList (Bits 8) ->
   IO (LittleEndian (hashElms param * ElmBytes * 8))
