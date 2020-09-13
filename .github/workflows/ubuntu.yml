@@ -1,0 +1,27 @@
+name: Tests in Ubuntu
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ hashFiles('.github/workflows/ubuntu.yml') }}
+
+      - uses: actions/setup-haskell@v1.1
+        with:
+          enable-stack: true
+
+      - run: echo ::add-path::~/.local/bin
+
+      - name: Install Idris by Cabal
+        run: |
+          stack install idris-1.3.3
+
+      - name: Run tests
+        run: |
+          idris --testpkg ether-momonga.ipkg
