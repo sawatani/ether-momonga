@@ -6,7 +6,8 @@ import Data.Crypt.Keccak
 import Data.IOArray
 import Data.Iterable
 import Data.Vect
-import Test.Unit.Assertions
+import Test.Standard
+import Test.Unit.Display
 import Test.Unit.Runners
 
 %default total
@@ -34,15 +35,29 @@ parseHex s = parseChars $ unpack s
     parseChars (a :: b :: xs) = readChars a b :: parseChars xs
     parseChars _ = []
 
-assume : String -> String -> IO Bool
-assume expectedHash msg = do
+isTarget : (msg : String) -> IO Bool
+isTarget msg = do
+  notCI <-  not <$> checkCI
+  pure $ notCI || ((modNatNZ (length msg) 136 SIsNotZ) == 0)
+
+doAssume : String -> String -> IO Bool
+doAssume expectedHash msg = do
+  let title = "Hashing " ++ show (length msg * 4) ++ " bits"
   let m = parseHex msg
   hash <- keccak256 m
   let given = toHex hash
-  assertEquals given expectedHash
+  assertWithTitle title given expectedHash
+
+assume : String -> String -> IO Bool
+assume expectedHash msg = do
+  isGo <- isTarget msg
+  if isGo
+  then doAssume expectedHash msg
+  else pure True
 
 assumeAll : IO Bool
 assumeAll = do
+  putStrLn $ heading "Known Answer Tests : Keccak256"
   assume "EEAD6DBFC7340A56CAEDC044696A168870549A6A7F6F56961E84A54BD9970B8A" "CC"
   assume "A8EACEDA4D47B3281A795AD9E1EA2122B407BAF9AABCB9E18B5717B7873537D2" "41FB"
   assume "627D7BC1491B2AB127282827B8DE2D276B13D7D70FB4C5957FDF20655BC7AC30" "1F877C"
