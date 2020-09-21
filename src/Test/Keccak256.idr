@@ -6,9 +6,8 @@ import Data.Crypt.Keccak
 import Data.IOArray
 import Data.Iterable
 import Data.Vect
-import System
+import Test.Standard
 import Test.Unit.Display
-import Test.Unit.Generic
 import Test.Unit.Runners
 
 %default total
@@ -38,8 +37,7 @@ parseHex s = parseChars $ unpack s
 
 isTarget : (msg : String) -> IO Bool
 isTarget msg = do
-  ci <- getEnv "CI"
-  let notCI = isNothing ci
+  notCI <-  not <$> checkCI
   pure $ notCI || ((modNatNZ (length msg) 136 SIsNotZ) == 0)
 
 doAssume : String -> String -> IO Bool
@@ -48,7 +46,7 @@ doAssume expectedHash msg = do
   let m = parseHex msg
   hash <- keccak256 m
   let given = toHex hash
-  genericTest (Just title) given expectedHash (==)
+  assertWithTitle title given expectedHash
 
 assume : String -> String -> IO Bool
 assume expectedHash msg = do
