@@ -4,21 +4,17 @@ import Data.Vect
 import Blockchain.Ethereum.HexString
 
 %default total
-%access private
+%access export
 
-export
 data Address : Type where
   AddrBody : (src : String) -> (hex : HexString 20) -> Address
 
-export
 Show Address where
   show (AddrBody src hex) = src
 
-export
 getBytes : Address -> Vect 20 Bits8
 getBytes (AddrBody src (HexBody xs)) = xs
 
-export
 parseAddress : String -> Maybe Address
 parseAddress str = parseHex str >>= mkAddr
   where
