@@ -14,7 +14,7 @@ data HexString : Nat -> Type where
   HexBody : Vect n Bits8 -> HexString n
 
 Show (HexString n) where
-  show (HexBody xs) = "0x" ++ foldl (\s, x => s ++ b8ToHexString x) "" xs
+  show (HexBody xs) = foldl (\s, x => s ++ b8ToHexString x) "0x" xs
 
 private
 hexChars : List Char
