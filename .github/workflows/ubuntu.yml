@@ -16,7 +16,7 @@ jobs:
         with:
           enable-stack: true
 
-      - run: echo ::add-path::~/.local/bin
+      - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Idris by Cabal
         run: |
