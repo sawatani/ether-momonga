@@ -12,8 +12,9 @@ jobs:
           path: ~/.stack
           key: ${{ runner.os }}-${{ hashFiles('.github/workflows/ubuntu.yml') }}
 
-      - uses: actions/setup-haskell@v1.1
+      - uses: haskell/actions/setup@main
         with:
+          ghc-version: 7.10.3
           enable-stack: true
 
       - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
